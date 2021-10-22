@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overlay</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+
+    <style>
+        .overlay-container {
+            display: flex;
+            width: 300px;
+            border: 5px rgb(70, 70, 70) solid;
+            align-items: center;
+            justify-content: center;
+
+            margin: 10px;
+            padding: 10px;
+        }
+
+        li {
+            background-color: #212529 !important;
+            color: rgb(236, 236, 236) !important;
+            font-size: 20px;
+        }
+
+        ul {
+            width: 100%;
+        }
+
+        .hidden {
+            opacity: 0;
+            transition: all 0.4s linear;
+        }
+
+        .nothidden {
+            opacity: 1;
+            transition: all 0.4s linear;
+        }
+
+        .error-box {
+            background-color: rgba(255, 40, 40, 0.651);
+            width: 300px;
+            border-radius: 50px;
+
+            color: white;
+
+            padding: 20px;
+
+            position: absolute;
+
+            top: 10px;
+            left: 10px;
+        }
+    </style>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+
+        window.onload = () => {
+            if (window.location.protocol == "https:") {
+                document.getElementById('error').innerText = "🛑 Must be using HTTP"
+                document.getElementById('error').classList.remove("hidden")
+                return;
+            }
+
+            if (params.has('test')) {
+                document.getElementById("container").classList.add("nothidden")
+            } else if (!params.has('url')) {
+                document.getElementById('error').innerText = "🛑 URL is not set."
+                document.getElementById('error').classList.remove("hidden")
+                return;
+            }
+
+            var ws = new WebSocket(`ws://${params.get('url')}/ws`)
+
+            ws.addEventListener("message", e => {
+                var data = e.data.split(":")
+                if (data[0] == "ping") return;
+                if (data[0] == "start") {
+                    var players = data[1].split(',');
+                    document.getElementById("container").classList.add("nothidden")
+
+                    for (let i = 0; i < document.getElementById("list").children.length; i++) {
+                        const c = document.getElementById("list").children[i];
+                        c.innerHTML = `${i + 1} - ${players[i]}`
+                    }
+                } else if (data[0] == "stop") {
+                    document.getElementById("container").classList.remove("nothidden")
+                }
+            })
+
+            ws.addEventListener("error", (e) => {
+                document.getElementById('error').innerText = "🛑 Can't connect to websocket"
+                document.getElementById('error').classList.remove("hidden")
+            })
+        }
+    </script>
+</head>
+
+<body>
+    <div class="overlay-container d-flex bg-dark hidden" id="container">
+        <ul class="list-group list-group-flush" id="list">
+            <li class="list-group-item">1 - Player1</li>
+            <li class="list-group-item">2 - Player2</li>
+            <li class="list-group-item">3 - Player3</li>
+            <li class="list-group-item">4 - Player4</li>
+        </ul>
+    </div>
+
+    <div id="error" class="error-box hidden"></div>
+</body>
+
+</html>

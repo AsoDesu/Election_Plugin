@@ -1,0 +1,16 @@
+name: Election
+version: '1.0-SNAPSHOT'
+main: net.asodev.election.Main
+api-version: 1.17
+authors: [ Aso ]
+description: simple* election plugin
+
+commands:
+  election:
+    permission: election.admin
+    description: Election main command
+
+
+libraries:
+  - com.github.twitch4j:twitch4j:1.5.0
+  - com.sparkjava:spark-core:2.9.3
